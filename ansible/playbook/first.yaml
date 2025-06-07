@@ -1,0 +1,21 @@
+---
+# Playbook 정의 시작
+# YAML 형식의 Ansible playbook은 항상 '---'로 시작합니다.
+
+- name: My first playbook     # Playbook의 이름 정의
+  hosts: localhost            # 이 playbook이 실행될 대상 호스트 지정 (여기서는 로컬 시스템)
+  
+  tasks:                      # 실행할 작업(task) 목록 시작
+  - name: test connectivity   # 첫 번째 task의 이름
+    ping:                     # Ansible의 ping 모듈을 사용하여 호스트 연결 테스트
+
+# 실행 방법 안내
+# 1. Playbook 문법 검사
+# ansible-playbook --syntax-check first.yaml
+
+# 2. Playbook 실행
+# ansible-playbook first.yaml 
+
+# 참고사항:
+# - ping 모듈은 실제 ICMP ping이 아닌 Ansible의 연결 테스트 모듈입니다.
+# - localhost 대상으로 실행하면 SSH 연결 없이 직접 실행됩니다.
