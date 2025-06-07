@@ -1,16 +1,24 @@
 ---
 - name: Installing packages   
-  hosts: targets             # localhost 대신 inventory의 targets 그룹 사용
-  become: yes               # root 권한 사용
-  
+  hosts: localhost            
+  become: yes
+
   tasks:                      
-  - name: Install apache     # Apache 웹 서버 설치
-    dnf: 
+  - name: Install apache      # Apache 웹 서버 패키지 설치
+    yum: 
       name: httpd
       state: present
 
-  - name: Start apache      # Apache 서비스 시작 및 자동 시작 설정
+  - name: Start apache        # Apache 서비스 시작 및 자동 시작 설정
     service:
       name: httpd
       state: started
       enabled: yes
+    # when 조건 설명:
+    # 1. ansible_check_mode is not defined: check 모드 변수가 정의되지 않은 경우 (일반 실행)
+    # 2. not ansible_check_mode: check 모드가 아닌 경우
+    # 이 조건이 필요한 이유:
+    # - check 모드(--check)에서는 실제로 패키지가 설치되지 않음
+    # - 따라서 서비스 시작 task에서 'service not found' 에러 발생
+    # - 이 조건으로 check 모드에서는 서비스 시작 task를 건너뛰게 됨
+    when: ansible_check_mode is not defined or not ansible_check_mode
