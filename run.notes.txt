@@ -1,0 +1,7 @@
+control_node_ip = "3.35.136.160"
+ssh_control_node = "ssh -i ~/.ssh/id_rsa ec2-user@3.35.136.160"
+ssh_target_node = "ssh -i ~/.ssh/id_rsa ec2-user@3.35.216.140"
+target_node_ip = "3.35.216.140"
+
+
+## aws ec2 create-default-vpc 
