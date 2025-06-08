@@ -1,0 +1,7 @@
+---
+- name: Check remote connection
+  hosts: targets
+  
+  tasks:
+  - name: test connectivity
+    ping:                     
