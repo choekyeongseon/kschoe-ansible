@@ -74,22 +74,25 @@ resource "aws_instance" "control_node" {
               
               # RHEL 9 시스템 업데이트 및 Python3 pip 설치
               echo "[INFO] Updating system and installing python3-pip"
-              dnf update -y
               dnf install -y python3-pip
               
               # ec2-user로 Ansible 설치
               echo "[INFO] Installing Ansible for ec2-user"
               sudo -u ec2-user bash << 'ANSIBLE_INSTALL'
-              pip3 install --user ansible
-              echo 'export PATH=$PATH:~/.local/bin' >> /home/ec2-user/.bashrc
-              source /home/ec2-user/.bashrc
+              python3 -m pip install --user ansible --no-cache-dir
+              mkdir -p ~/.local/bin
+              echo 'export PATH=$HOME/.local/bin:$PATH' >> ~/.bashrc
+              source ~/.bashrc
               ANSIBLE_INSTALL
+              
+              # PATH 설정이 적용될 때까지 대기
+              sleep 10
               
               # Ansible 설치 확인
               echo "[INFO] Verifying Ansible installation"
-              sudo -u ec2-user bash -c 'source ~/.bashrc && ansible --version' > /home/ec2-user/ansible_version.txt
+              sudo -u ec2-user bash -c 'source ~/.bashrc && ansible --version'
               
-              # 기본 Ansible 설정 디렉토리 생성
+              # 기본 Ansible 설정 디렉토리 생성 
               echo "[INFO] Creating Ansible configuration directory"
               mkdir -p /home/ec2-user/ansible
               chown -R ec2-user:ec2-user /home/ec2-user/ansible

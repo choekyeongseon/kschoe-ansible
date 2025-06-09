@@ -14,6 +14,9 @@
   
   # 방법 2
   ansible all --list-hosts
+
+  # SSH 에러/ 키 복사
+  scp -i ~/.ssh/id_rsa ~/.ssh/id_rsa ec2-user@15.164.251.183:~/.ssh/
   ```
 
 ## 3. 호스트 파일 구문

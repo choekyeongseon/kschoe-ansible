@@ -3,6 +3,7 @@
 ## 1. 개요
 원격 클라이언트와의 연결을 설정하는 방법을 설명합니다. Ansible은 SSH를 통해 원격 호스트와 통신하므로, 적절한 SSH 설정이 필요합니다.
 
+## scp -i ~/.ssh/id_rsa ~/.ssh/id_rsa ec2-user@3.35.233.118:~/.ssh/ && ssh -i ~/.ssh/id_rsa ec2-user@3.35.233.118 "chmod 600 ~/.ssh/id_rsa && cd ~/ansible && ansible all -m ping"
 ## 2. 기본 설정 단계
 
 ### 2.1 Linux 클라이언트 준비
