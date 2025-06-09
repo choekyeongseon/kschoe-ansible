@@ -1,0 +1,15 @@
+---
+- name: Copy file from local to remote
+  hosts: all #targets
+  
+  tasks:
+  - name: copying file
+    become: true 
+    copy:
+      src: /tmp/test.txt
+      dest: /tmp/test.txt
+      owner: ec2-user
+      group: ec2-user
+      mode: '0644'
+
+#echo "hello" > /tmp/test.txt
