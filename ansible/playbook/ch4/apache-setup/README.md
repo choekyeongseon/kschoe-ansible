@@ -8,71 +8,150 @@
 - Target Node에 대한 SSH 접속이 가능해야 합니다.
 - Target Node의 sudo 권한이 필요합니다.
 
-## 작업 순서
+## 테스트 환경 구성
 
-1. Apache(httpd) 패키지 상태 확인
-   ```bash
-   ansible target -m command -a "rpm -qa | grep http"
-   ```
+1. Control Node:
+   - RHEL 9 AMI
+   - Ansible 사용자 레벨 설치 (`pip install --user ansible`)
+   - `~/ansible/inventory` 파일에 Target Node 정보 구성
 
-2. Apache 서비스 상태 확인
-   ```bash
-   ansible target -m command -a "systemctl status httpd"
-   ```
+2. Target Node:
+   - RHEL 9 AMI
+   - SSH 키 인증 설정
+   - sudo 권한 필요
 
-3. 방화벽 서비스 상태 확인
-   ```bash
-   ansible target -m command -a "systemctl status firewalld"
-   ```
+## Playbook 구성 요소
 
-4. HTTP 서비스가 방화벽에서 허용되어 있는지 확인
-   ```bash
-   ansible target -m command -a "firewall-cmd --list-all"
-   ```
+### 1. 필수 패키지 설치
+```yaml
+- name: Install required packages
+  dnf:
+    name: 
+      - python3-firewall
+      - firewalld
+    state: present
+```
 
-## Playbook 예제
+### 2. 방화벽 서비스 설정
+```yaml
+- name: Start and enable firewalld service
+  service:
+    name: firewalld
+    state: started
+    enabled: yes
+```
+
+### 3. Apache 설치 및 설정
+```yaml
+- name: install apache packages
+  dnf:
+    name: httpd
+    state: present 
+
+- name: start apache service
+  service:
+    name: httpd
+    state: started
+```
+
+### 4. HTTP 포트 개방
+```yaml
+- name: open port 80 for http access 
+  firewalld:
+    service: http
+    permanent: true
+    state: enabled
+```
+
+## 발생한 문제 및 해결 방법
+
+1. 권한 문제:
+   - 문제: "This command has to be run under the root user"
+   - 해결: Playbook에 `become: yes` 추가
+
+2. Python Firewall 라이브러리 문제:
+   - 문제: "Failed to import the required Python library (firewall)"
+   - 해결: `python3-firewall` 패키지 설치
+
+3. Firewalld 설정 문제:
+   - 문제: "Failed to load '/etc/firewalld/firewalld.conf'"
+   - 해결: `firewalld` 패키지 설치 및 서비스 시작
+
+## 최종 Playbook
 
 ```yaml
 ---
-- name: Apache 설치 및 설정
-  hosts: target
+- name: Apache setup
+  hosts: all
   become: yes
   tasks:
-    - name: Apache 패키지 설치
+    - name: Install required packages
       dnf:
-        name: httpd
+        name: 
+          - python3-firewall
+          - firewalld
         state: present
 
-    - name: Apache 서비스 시작 및 자동 시작 설정
+    - name: Start and enable firewalld service
       service:
-        name: httpd
+        name: firewalld
         state: started
         enabled: yes
 
-    - name: 방화벽에서 http 서비스 허용
+    - name: install apache packages
+      dnf:
+        name: httpd
+        state: present 
+    
+    - name: start apache service
+      service:
+        name: httpd
+        state: started
+
+    - name: open port 80 for http access 
       firewalld:
         service: http
-        permanent: yes
+        permanent: true
         state: enabled
-        immediate: yes
+    
+    - name: Restart firewalld service to load firewalld rules
+      service:
+        name: firewalld
+        state: reloaded
 ```
 
-## 실행 방법
+## 실행 결과 확인
 
-1. Playbook 실행:
-   ```bash
-   ansible-playbook apache-setup.yaml
-   ```
+1. Apache 서비스 상태 확인:
+```bash
+ansible target -m command -a "systemctl status httpd"
+```
 
-2. 설치 확인:
-   - 웹 브라우저에서 Target Node의 IP 주소로 접속
-   - `http://<target-ip>`로 접속하여 Apache 기본 페이지 확인
+2. 방화벽 규칙 확인:
+```bash
+ansible target -m command -a "firewall-cmd --list-all"
+```
+
+3. 웹 서버 접속 테스트:
+```bash
+curl http://<target-ip>
+```
 
 ## 주의 사항
 
-- SELinux가 활성화된 경우 추가 설정이 필요할 수 있습니다.
-- 방화벽 규칙 변경 시 기존 설정을 백업하는 것이 좋습니다.
-- 프로덕션 환경에서는 보안 설정을 추가로 검토해야 합니다.
+1. 패키지 설치 순서:
+   - firewalld 관련 패키지를 먼저 설치
+   - 그 다음 Apache 설치 및 설정
+   - 마지막으로 방화벽 규칙 설정
+
+2. 서비스 의존성:
+   - firewalld 서비스가 실행 중이어야 방화벽 규칙 설정 가능
+   - Apache 서비스는 방화벽 규칙과 독립적으로 실행 가능
+
+3. 보안 고려사항:
+   - 프로덕션 환경에서는 필요한 포트만 개방
+   - SELinux 설정 확인 필요
+   - 로그 모니터링 설정 권장
 
 ## 문제 해결
 
