@@ -1,0 +1,30 @@
+---
+- name: Apache 설치 및 설정
+  hosts: target
+  become: yes
+  tasks:
+    - name: Apache 패키지 설치
+      dnf:
+        name: httpd
+        state: present
+
+    - name: Apache 서비스 시작 및 자동 시작 설정
+      service:
+        name: httpd
+        state: started
+        enabled: yes
+
+    - name: 방화벽에서 http 서비스 허용
+      firewalld:
+        service: http
+        permanent: yes
+        state: enabled
+        immediate: yes
+
+    - name: Apache 서비스 상태 확인
+      command: systemctl status httpd
+      register: httpd_status
+
+    - name: Apache 상태 출력
+      debug:
+        var: httpd_status.stdout_lines 
