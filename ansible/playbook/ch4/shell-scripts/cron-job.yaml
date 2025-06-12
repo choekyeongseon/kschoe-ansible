@@ -1,0 +1,47 @@
+---
+# Playbook: 시스템 정보 수집을 위한 Cron Job 설정
+# 목적: 매주 목요일 오전 10시에 시스템 정보를 수집하는 스크립트를 실행
+
+- name: Setup system info collection cron job
+  hosts: target
+  become: yes  # root 권한으로 실행 (cron 작업 생성을 위해 필요)
+
+  tasks:
+    # 스크립트가 저장될 디렉토리 생성
+    - name: Ensure script directory exists
+      file:
+        path: /home/ec2-user/ansible/ch4/shell-scripts
+        state: directory
+        mode: '0755'
+        owner: ec2-user
+        group: ec2-user
+
+    # 실행할 스크립트 파일을 원격 서버로 복사
+    - name: Copy system info script
+      copy:
+        src: run.sh  # 로컬의 스크립트 파일
+        dest: /home/ec2-user/ansible/ch4/shell-scripts/run.sh
+        mode: '0755'  # 실행 권한 부여
+        owner: ec2-user
+        group: ec2-user
+
+    # Cron Job 설정
+    - name: Schedule system info collection
+      cron:
+        name: "Weekly System Information Collection"  # cron 작업의 식별자
+        minute: "0"    # 매 시간 0분
+        hour: "10"     # 오전 10시
+        day: "*"       # 매일
+        month: "*"     # 매월
+        weekday: "4"   # 목요일 (0=일요일, 1=월요일, ..., 6=토요일)
+        user: ec2-user # 작업을 실행할 사용자
+        job: "/home/ec2-user/ansible/ch4/shell-scripts/run.sh > /dev/null 2>&1"  # 실행할 명령어
+        state: present # cron 작업 활성화
+
+    # Cron 서비스 재시작 (선택사항)
+    - name: Restart cron service
+      service:
+        name: crond  # RHEL/CentOS의 경우 crond, Ubuntu의 경우 cron
+        state: restarted
+      when: ansible_os_family == "RedHat"  # RedHat 계열 OS인 경우에만 실행
+        
