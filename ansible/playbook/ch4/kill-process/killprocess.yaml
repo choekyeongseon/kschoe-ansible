@@ -1,0 +1,24 @@
+---
+- name: find a process and kill it
+  hosts: all
+
+  tasks:
+  - name: get running proccess from remote host
+    ignore_errors: true
+    shell: "ps -few | grep test | grep -v grep | awk '{print $2}'"
+    register: process_list
+
+  - name: kill the process
+    ignore_errors: true
+    shell: "kill -9 {{ item }}"
+    with_items: "{{ process_list.stdout_lines }}"
+
+# 프로세스 종료 후 확인 명령 : ps -few | grep top | awk '{print $2}'
+
+# #!/bin/bash
+# # 무한 루프를 도는 테스트용 프로세스
+# while true; do
+#   sleep 1
+# done
+
+# ps -few | grep test | grep -v grep

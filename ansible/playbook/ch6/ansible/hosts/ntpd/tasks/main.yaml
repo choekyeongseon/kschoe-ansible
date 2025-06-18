@@ -1,0 +1,6 @@
+---
+- name: install time package
+  dnf:
+    name: ntpd or chrony
+    state: present
+    

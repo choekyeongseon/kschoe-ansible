@@ -1,0 +1,6 @@
+---
+- name: install named
+  dnf:
+    name: named
+    state: present
+    

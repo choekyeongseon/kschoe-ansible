@@ -1,0 +1,20 @@
+---
+- name: Download Tomcat from external URL
+  hosts: all
+
+  tasks:
+  - name: create a Directory 
+    file:
+      path: /opt/tomcat
+      state: directory
+      mode: '0755'
+      owner: ec2-user
+      group: ec2-user
+  
+  - name: Download Tomcat using get_url
+    get_url:
+      url: https://archive.apache.org/dist/tomcat/tomcat-9/v9.0.84/bin/apache-tomcat-9.0.84.tar.gz
+      dest: /opt/tomcat
+      mode: '0755'
+      owner: ec2-user
+      group: ec2-user

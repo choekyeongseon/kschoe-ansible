@@ -107,3 +107,125 @@ touch fullinstall/tasks/main.yml
 - 반복되는 Playbook 블록이 많을 때
 - Playbook이 지나치게 길고 복잡해졌을 때
 
+
+
+-----
+
+# Ansible Role 기반 Playbook 구성 가이드
+
+Ansible의 **Role** 기능은 복잡한 Playbook을 더 작은 단위로 분리하여 구성, 재사용, 관리가 쉬운 형태로 만드는 데 유용합니다.
+
+## ✅ Role이란?
+
+- 복잡한 Playbook을 `tasks`, `handlers`, `variables` 등으로 나눠 관리할 수 있게 해줍니다.
+- 역할별로 디렉토리를 분리하고 각 디렉토리 내에서 필요한 작업들을 정의합니다.
+- 여러 환경이나 서버 유형에 따라 역할(Role)을 구분하면 유지보수와 코드 공유가 쉬워집니다.
+
+---
+
+## 📦 예시: 웹 서버 Role 구분
+
+### 시나리오
+- **East Web Servers**: `httpd` 패키지 설치, 서비스 시작, 방화벽 설정 포함
+- **West Web Servers**: `httpd` 패키지 설치 및 서비스 시작만 수행
+
+---
+
+## 📁 디렉토리 구조
+
+```
+/etc/ansible/
+├── roles/
+│   ├── full_install/
+│   │   └── tasks/
+│   │       └── main.yml
+│   └── basic_install/
+│       └── tasks/
+│           └── main.yml
+└── playbooks/
+    └── by_role.yml
+```
+
+---
+
+## 📜 Role 구성 예시
+
+### `roles/full_install/tasks/main.yml`
+```yaml
+---
+- name: Install httpd
+  yum:
+    name: httpd
+    state: present
+
+- name: Start httpd service
+  service:
+    name: httpd
+    state: started
+
+- name: Allow HTTP through firewall
+  firewalld:
+    service: http
+    permanent: yes
+    state: enabled
+    immediate: yes
+
+- name: Reload firewalld
+  service:
+    name: firewalld
+    state: reloaded
+```
+
+### `roles/basic_install/tasks/main.yml`
+```yaml
+---
+- name: Install httpd
+  yum:
+    name: httpd
+    state: present
+
+- name: Start httpd service
+  service:
+    name: httpd
+    state: started
+```
+
+---
+
+## ▶️ 최종 Playbook (`playbooks/by_role.yml`)
+```yaml
+---
+- name: Full Install
+  hosts: east_webservers
+  roles:
+    - full_install
+
+- name: Basic Install
+  hosts: west_webservers
+  roles:
+    - basic_install
+```
+
+---
+
+## 💡 운영 팁
+
+- 역할은 **서버 유형**, **기능**, **부서별 요구사항** 등에 따라 구분할 수 있습니다.
+- 역할 안의 디렉토리 및 파일 명은 Ansible이 자동으로 인식하는 구조이므로 변경하면 안 됩니다 (`tasks/main.yml` 등).
+- `ansible-playbook by_role.yml` 명령으로 전체 플레이북 실행.
+
+---
+
+## ✅ 결과 검증
+
+각 Role에 따라 지정된 패키지가 설치되고 서비스가 동작함을 다음 명령어로 확인 가능:
+
+```bash
+rpm -q httpd
+systemctl status httpd
+firewall-cmd --list-all
+```
+
+---
+
+Ansible Role을 사용하면 유지보수와 협업, 재사용성이 크게 향상됩니다.

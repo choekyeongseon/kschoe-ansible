@@ -1,0 +1,6 @@
+---
+- name: install apache package
+  dnf:
+    name: httpd
+    state: present
+    
