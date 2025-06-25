@@ -1,0 +1,88 @@
+---
+- name: SSH Key Distribution for root accounts
+  hosts: all
+  gather_facts: false
+  become: true
+
+  vars:
+    ssh_user: root
+    ssh_key_type: rsa
+    ssh_key_bits: 4096
+    ssh_dir: "/root/.ssh"
+    private_key: "/root/.ssh/id_rsa"
+    public_key: "/root/.ssh/id_rsa.pub"
+    known_hosts: "/root/.ssh/known_hosts"
+    authorized_keys: "/root/.ssh/authorized_keys"
+
+  tasks:
+    - name: Ensure ansible.cfg exists with host_key_checking disabled
+      copy:
+        dest: /etc/ansible/ansible.cfg
+        content: |
+          [defaults]
+          host_key_checking = False
+          timeout = 30
+        mode: '0644'
+      delegate_to: localhost
+      run_once: true
+
+    - name: Ensure /root/.ssh directory exists on control node
+      file:
+        path: "{{ ssh_dir }}"
+        state: directory
+        mode: '0700'
+      delegate_to: localhost
+      run_once: true
+
+    - name: Generate SSH key pair on control node if not exists
+      command: ssh-keygen -t {{ ssh_key_type }} -b {{ ssh_key_bits }} -f {{ private_key }} -N ""
+      args:
+        creates: "{{ private_key }}"
+      delegate_to: localhost
+      run_once: true
+
+    - name: Ensure target host key is in known_hosts (on control node)
+      shell: ssh-keyscan -H {{ ansible_host | default(inventory_hostname) }} >> {{ known_hosts }} 2>/dev/null
+      args:
+        creates: "{{ known_hosts }}"
+      delegate_to: localhost
+      run_once: false
+
+    - name: Ensure /root/.ssh directory exists on all nodes
+      file:
+        path: "{{ ssh_dir }}"
+        state: directory
+        mode: '0700'
+
+    - name: Add SSH key to authorized_keys on each target node (root)
+      ansible.posix.authorized_key:
+        user: "{{ ssh_user }}"
+        state: present
+        key: "{{ lookup('file', public_key) }}"
+        path: "{{ authorized_keys }}"
+
+    - name: Test SSH connectivity as root
+      ping:
+      register: ping_result
+
+    - name: Display connectivity status
+      debug:
+        msg: "SSH connection to {{ inventory_hostname }} ({{ ansible_host }}) - {{ 'SUCCESS' if ping_result.ping == 'pong' else 'FAILED' }}"
+
+
+
+###수동조치###
+
+# ✅ 방법 1: Ansible에서 비밀번호 기반 SSH 사용 허용
+# ansible.cfg 또는 플레이북 실행 시 명령에 --ask-pass 옵션을 줘서 비밀번호 기반 접속 허용:
+# ansible-playbook playbooks/ssh-key-distribution.yml --ask-pass
+# 그럼 플레이북 실행 전에 각 VM의 root 비밀번호를 입력하라고 나올 거야.
+# ⸻⸻⸻
+# ✅ 방법 2: root 계정의 ~/.ssh/authorized_keys에 공개키 수동 등록 (권장)
+# 1. 제어 노드에서 공개키 생성 (이미 있다면 생략)
+# ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa -N ""
+# 2. 공개키 복사
+# ssh-copy-id -i ~/.ssh/id_rsa.pub root@192.168.180.25
+# 3. Ansible에서 다시 실행
+# ansible-playbook playbooks/ssh-key-distribution.yml
+

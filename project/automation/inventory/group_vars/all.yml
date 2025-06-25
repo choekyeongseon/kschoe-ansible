@@ -1,0 +1,19 @@
+---
+# Ansible 기본 설정
+ansible_user: ec2-user
+ansible_ssh_private_key_file: ~/.ssh/id_rsa
+
+# SSH 키 분배 설정
+ssh_user: ec2-user
+ssh_key_type: rsa
+ssh_key_bits: 4096
+
+# SSL 인증서 설정
+domain: "seoul-city.com"
+working_dir: "/opt/ssl-certs" 
+
+# Harbor 설정
+tmpreg: "secloud-oss" # tagging-push.sh.j2 파일에서 사용
+harbor_data_dir: "/data/harbor" # harbor.yml.j2 파일에서 사용
+harbor_config_path: "/etc/harbor/configs" # harbor.yml.j2 파일에서 사용
+harbor_working_dir: "/etc/harbor" # harbor.yml.j2 파일에서 사용

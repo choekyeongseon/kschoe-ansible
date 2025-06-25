@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Harbor 레지스트리 주소 설정
+HARBOR_REGISTRY="{{ domain }}"
+
+# Harbor 이미지 목록 가져오기
+docker images --format "{{.Repository}} {{.Tag}}" | grep "^$HARBOR_REGISTRY" | while read -r REPO TAG; do
+    # 이미지가 "<none>" 태그가 아닌 경우에만 push 실행
+    if [[ "$TAG" != "<none>" ]]; then
+        echo "Pushing: $REPO:$TAG"
+        docker push "$REPO:$TAG"
+    else
+        echo "Skipping: $REPO (No valid tag)"
+    fi
+done
+

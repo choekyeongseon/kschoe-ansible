@@ -1,0 +1,33 @@
+---
+- name: Ensure SSL certificate working directory exists
+  file:
+    path: "/opt/ssl-certs"
+    state: directory
+    mode: '0755'
+
+- name: Ensure SSL scripts directory exists
+  file:
+    path: /opt/scripts
+    state: directory
+    mode: '0755'
+
+- name: Copy SSL certificate creation script
+  copy:
+    src: create-cert.sh
+    dest: /opt/scripts/create-cert.sh
+    mode: '0755'
+
+- name: Execute SSL certificate creation script
+  shell: /opt/scripts/create-cert.sh "{{ domain }}"
+  args:
+    chdir: "/opt/ssl-certs"
+  register: cert_result
+
+- name: Display script execution result
+  debug:
+    msg: |
+      SSL Certificate Creation Completed:
+      Domain: {{ domain }}
+      Working Directory: /opt/ssl-certs
+      Script Output:
+      {{ cert_result.stdout_lines | join('\n') }} 

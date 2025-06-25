@@ -1,0 +1,13 @@
+---
+- name: 사용자 및 그룹 생성
+  user:
+    name: "{{ item.name }}"
+    groups: "{{ item.groups | default(omit) }}"
+    shell: "{{ item.shell | default(omit) }}"
+    password: "{{ item.password | default(omit) }}"
+    state: present
+  loop: "{{ prerequisite_users | default([]) }}"
+
+- name: SSH 키 배포 (예시)
+  debug:
+    msg: "SSH 키를 배포합니다. (실제 authorized_key 태스크로 교체 필요)"

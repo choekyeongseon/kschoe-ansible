@@ -1,0 +1,41 @@
+---
+- name: Simple SSL Certificate Generation
+  hosts: control_nodes
+  gather_facts: false
+  become: true
+  
+  # vars:
+  #   working_dir: "/opt/ssl-certs"
+
+  pre_tasks:
+    - name: Debug SSL certificate variables
+      debug:
+        msg: |
+          SSL Certificate Variables:
+          - Domain: {{ domain }}
+          - Working Directory: {{ working_dir }}
+
+  roles:
+    - secloudit/ssl-cert
+
+  tasks:
+    - name: List created certificate directories
+      find:
+        paths: "{{ working_dir }}"
+        file_type: directory
+      register: cert_dirs
+
+    - name: Display created directories
+      debug:
+        msg: "Created directory: {{ item.path }}"
+      loop: "{{ cert_dirs.files }}"
+
+    - name: Show Harbor certificate info
+      shell: openssl x509 -in "{{ working_dir }}/harbor/harbor.{{ domain }}.crt" -text -noout | grep -E "(Subject:|DNS:)"
+      register: harbor_info
+      ignore_errors: yes
+
+    - name: Display Harbor certificate info
+      debug:
+        msg: "{{ harbor_info.stdout_lines }}"
+      when: harbor_info.rc == 0 

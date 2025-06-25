@@ -1,0 +1,59 @@
+---
+- name: Disable swap
+  command: swapoff -a
+  changed_when: false
+
+- name: Comment out swap entry in /etc/fstab
+  replace:
+    path: /etc/fstab
+    regexp: '^([^#].*?\sswap\s+.*)$'
+    replace: '# \1'
+  register: fstab_swap_comment
+
+- name: Check current swap status
+  command: swapon --summary
+  register: swap_status
+  changed_when: false
+
+- name: Stop firewalld service
+  service:
+    name: firewalld
+    state: stopped
+    enabled: no
+  ignore_errors: yes
+
+- name: Check firewalld service status
+  command: systemctl is-active firewalld
+  register: firewalld_status
+  ignore_errors: yes
+  changed_when: false
+
+- name: Get SELinux current status
+  command: getenforce
+  register: selinux_current_state
+  changed_when: false
+
+- name: Temporarily disable SELinux
+  command: setenforce 0
+  when: selinux_current_state.stdout != "Disabled"
+  changed_when: false
+
+- name: Set SELINUX=disabled in config
+  replace:
+    path: /etc/selinux/config
+    regexp: '^SELINUX=.*'
+    replace: 'SELINUX=disabled'
+  register: selinux_config_change
+
+- name: Check SELinux config value
+  command: grep "^SELINUX=" /etc/selinux/config
+  register: selinux_config_check
+  changed_when: false
+
+- name: Print optimization summary
+  debug:
+    msg: |
+      System optimization summary:
+      - Swap: {{ 'Disabled' if swap_status.stdout_lines | length == 0 else 'Still active' }}
+      - Firewalld: {{ 'Stopped' if firewalld_status.stdout != 'active' else 'Running' }}
+      - SELinux config: {{ 'Disabled' if selinux_config_check.stdout == 'SELINUX=disabled' else 'Not set correctly' }}

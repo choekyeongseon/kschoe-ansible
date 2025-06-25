@@ -1,0 +1,6 @@
+---
+- hosts: k8s
+  roles:
+    - k8s/haproxy
+    - k8s/kubernetes
+    - k8s/bastion 

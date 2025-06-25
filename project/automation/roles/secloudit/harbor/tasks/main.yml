@@ -1,0 +1,96 @@
+---
+- name: Harbor 디렉토리 생성
+  file:
+    path: "{{ harbor_config_path }}"
+    state: directory
+
+- name: Harbor 디렉토리 생성
+  file:
+    path: "{{ harbor_working_dir }}"
+    state: directory
+
+## 설정파일 배포
+- name: Harbor 이미지 로드 스크립트 템플릿 배포
+  template:
+    src: load-shell.sh.j2
+    dest: "{{ harbor_config_path }}/load-shell.sh"
+    mode: '0755'
+
+- name: Harbor 프로젝트 생성 스크립트 템플릿 배포
+  template:
+    src: harbor-project-create.sh.j2
+    dest: "{{ harbor_config_path }}/harbor-project-create.sh"
+    mode: '0755'
+
+- name: Harbor 이미지 로드 스크립트 템플릿 배포
+  template:
+    src: push.sh.j2
+    dest: "{{ harbor_config_path }}/push.sh"
+    mode: '0755'
+
+- name: Harbor 이미지 로드 스크립트 템플릿 배포
+  template:
+    src: tagging-push.sh.j2
+    dest: "{{ harbor_config_path }}/tagging-push.sh"
+    mode: '0755'
+
+- name: Harbor 이미지 로드 스크립트 템플릿 배포
+  template:
+    src: docker-compose.yml
+    dest: "{{ harbor_working_dir }}/docker-compose.yml"
+    mode: '0755'
+
+- name: Harbor 이미지 로드 스크립트 템플릿 배포
+  template:
+    src: harbor.yml.j2
+    dest: "{{ harbor_working_dir }}/harbor.yml"
+    mode: '0755'
+
+- name: common 디렉토리 배포
+  file:
+    path: "{{ harbor_working_dir }}/common"
+    state: Directory
+
+- name: harbor-pushimages 디렉토리 배포
+  file:
+    path: "{{ harbor_working_dir }}/harbor-pushimages"
+    state: Directory
+
+- name: common.sh 파일 배포
+  template:
+    src: common.sh.j2
+    dest: "{{ harbor_working_dir }}/common.sh"
+    mode: '0755'
+
+- name: install.sh 파일 배포
+  template:
+    src: install.sh
+    dest: "{{ harbor_working_dir }}/install.sh"
+    mode: '0755'
+
+- name: prepare.sh 파일 배포
+  template:
+    src: prepare.sh
+    dest: "{{ harbor_working_dir }}/prepare.sh"
+    mode: '0755'
+
+- name: harbor.v2.tar.gz 파일 배포
+  copy:
+    src: harbor.v2.tar.gz
+    dest: "{{ harbor_working_dir }}/harbor.v2.tar.gz"
+    mode: '0755'
+## 설정파일 배포 완료
+
+- name: Harbor 이미지 로드 (예시)
+  shell: "docker load -i {{ harbor_working_dir }}/harbor.v2.tar.gz"
+####
+- name: Harbor 설치 스크립트 실행 (예시)
+  shell: "cd {{ harbor_working_dir }} && ./prepare.sh && ./install.sh"
+
+- name: Harbor 프로젝트 생성 스크립트 실행 (예시)
+  shell: "{{ harbor.project_script }}"
+  when: harbor.project_script is defined
+
+- name: Harbor 이미지 push 스크립트 실행 (예시)
+  shell: "{{ harbor.push_script }}"
+  when: harbor.push_script is defined

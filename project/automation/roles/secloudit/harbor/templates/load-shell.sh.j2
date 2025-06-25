@@ -1,0 +1,9 @@
+#! /bin/bash
+LS=$(find {{ role_path }}/harbor-pushimages/images -name "*.tar")
+array=(${LS})
+
+for tarstr in "${array[@]}"
+do
+    echo "Loading image: $tarstr"
+    docker load -i $tarstr
+done

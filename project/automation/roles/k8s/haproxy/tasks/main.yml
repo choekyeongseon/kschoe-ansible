@@ -1,0 +1,4 @@
+---
+- name: HAProxy 설치 (예시)
+  debug:
+    msg: "HAProxy 설치 및 설정을 진행합니다. (실제 설치 태스크로 교체 필요)"

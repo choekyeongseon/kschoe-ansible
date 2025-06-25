@@ -1,0 +1,53 @@
+---
+- name: Create Docker installation directory
+  file:
+    path: /opt/docker-install
+    state: directory
+    mode: '0755'
+
+- name: Copy Docker RPM files
+  copy:
+    src: docker/
+    dest: /opt/docker-install/
+    mode: '0644'
+
+- name: Install all Docker RPM packages
+  command: dnf install -y *.rpm --nobest --skip-broken
+  args:
+    chdir: /opt/docker-install
+  register: docker_install_result
+
+- name: Start and enable Docker service
+  systemd:
+    name: docker
+    state: started
+    enabled: yes
+
+- name: Add user to docker group
+  user:
+    name: "{{ ansible_user | default('root') }}"
+    groups: docker
+    append: yes
+
+- name: Verify Docker installation
+  command: docker --version
+  register: docker_version
+  changed_when: false
+
+- name: Verify Docker Compose installation
+  command: docker compose version
+  register: docker_compose_version
+  changed_when: false
+
+- name: Display Docker installation results
+  debug:
+    msg: |
+      Docker installation completed:
+      - Docker version: {{ docker_version.stdout }}
+      - Docker Compose version: {{ docker_compose_version.stdout }}
+      - Installation result: {{ docker_install_result.stdout_lines[-5:] | join('\n') }}
+
+- name: Clean up installation files
+  file:
+    path: /opt/docker-install
+    state: absent

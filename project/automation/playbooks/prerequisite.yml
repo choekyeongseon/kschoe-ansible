@@ -1,0 +1,11 @@
+---
+# 시스템 전역 설정 (모든 VM에서 실행)
+- hosts: all
+  roles:
+    - prerequisite/system
+
+# 패키지 설치 (secloudit VM에서만 실행)
+- hosts: secloudit_vms
+  roles:
+    - prerequisite/packages
+    # - prerequisite/users 

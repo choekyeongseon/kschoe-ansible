@@ -1,0 +1,29 @@
+---
+- name: Docker 및 Docker Compose 설치 (예시)
+  package:
+    name:
+      - docker
+      - docker-compose
+    state: present
+
+- name: Docker 그룹에 사용자 추가
+  user:
+    name: "{{ ansible_user | default('root') }}"
+    groups: docker
+    append: yes
+
+- name: GitLab 디렉토리 생성
+  file:
+    path: "{{ gitlab.config_path }}"
+    state: directory
+
+- name: SSL 인증서 복사 (예시)
+  copy:
+    src: certs/
+    dest: "{{ gitlab.cert_path }}/"
+    mode: '0644'
+
+- name: GitLab 컨테이너 실행 스크립트 실행 (예시)
+  shell: "{{ gitlab.install_script }}"
+  args:
+    chdir: "{{ gitlab.config_path }}"

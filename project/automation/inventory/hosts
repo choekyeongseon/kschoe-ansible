@@ -1,0 +1,33 @@
+# secloudit VM 그룹
+[secloudit_vms]
+auth-vm ansible_host=192.168.180.186
+console-vm ansible_host=192.168.180.24
+logging-vm ansible_host=192.168.180.26
+util-vm ansible_host=192.168.180.25
+
+# control-node 전용 그룹 
+[control_nodes]
+util-vm ansible_host=192.168.180.25
+
+# Kubernetes 마스터 노드 그룹
+[service_k8s_masters]
+master1 ansible_host=192.168.180.183
+master2 ansible_host=192.168.180.190
+master3 ansible_host=192.168.180.188
+
+# Kubernetes 워커 노드 그룹
+[service_k8s_workers]
+worker1 ansible_host=192.168.180.185
+worker2 ansible_host=192.168.180.182
+worker3 ansible_host=192.168.180.194
+
+# 전체 Kubernetes 노드 그룹 (마스터 + 워커)
+[service_k8s_nodes:children]
+service_k8s_masters
+service_k8s_workers
+
+# 전체 대상 그룹
+[all:children]
+secloudit_vms
+service_k8s_nodes
+

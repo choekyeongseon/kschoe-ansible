@@ -1,0 +1,6 @@
+# Are you sure you want to continue connecting (yes/no/[fingerprint])? 제거 
+/etc/ansible/ansible.cfg
+``` 추가
+[defaults]
+host_key_checking = False
+```

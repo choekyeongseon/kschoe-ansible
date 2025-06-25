@@ -1,0 +1,33 @@
+#! /bin/bash
+# 실제 registry로 태깅
+TMPREG="{{ tmpreg }}"
+REPREG="{{ domain }}"
+Comma=","
+Bar="|"
+
+dockertags=$( docker images -a | grep $TMPREG | awk '{ print $1":"$2; }'| awk -F ":" -v repreg=$REPREG -v tmpreg=$TMPREG -v comma=$Comma -v bar=$Bar '{ print $1":"$2; }{ print bar }{ gsub(tmpreg, repreg); print $1":"$2; }{ print comma }'  ) 
+
+echo $dockertags
+
+dockertagstrim=(`echo $dockertags | tr -d ' '`)
+echo $dockertagstrim
+
+IFS=',' read -ra dockercouplearray <<<  "$dockertagstrim"
+
+for dockercouple in "${dockercouplearray[@]}"
+do
+    origintag=(`echo $dockercouple | cut -d $Bar -f1 `)
+    newtag=(`echo $dockercouple | cut -d $Bar -f2 `)
+    docker tag $origintag $newtag #&& docker rmi $origintag
+done
+
+echo "-Push-"
+
+for dockercouple in "${dockercouplearray[@]}"
+do
+    newtag=(`echo $dockercouple | cut -d $Bar -f2 `)
+    docker push $newtag
+done
+
+
+#docker images -a | grep test-harbor.test.com | awk '{ print $1":"$2; }' | xargs docker rmi

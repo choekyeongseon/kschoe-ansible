@@ -1,0 +1,11 @@
+---
+- hosts: secloudit_vms
+  roles:
+    - secloudit/harbor
+    - secloudit/coredns
+    - secloudit/chartmuseum
+    - secloudit/gitlab
+    - secloudit/keycloak
+    - secloudit/mongodb
+    - secloudit/fluentd
+    - secloudit/custom-service 
