@@ -17,14 +17,6 @@ crash.*.log
 .terraformrc
 terraform.rc
 
-# Large Docker image files
-project/automation/roles/secloudit/harbor/harbor-pushimages/images/*.tar
-project/automation/roles/secloudit/harbor/files/harbor.v2.9.2.tar.gz
-
-# Ansible packages
-project/automation/ansible-packages/packages/ansible-pkgs.tar.gz
-project/automation/ansible-packages/packages/collections/*.tar.gz
-
 # System files
 .DS_Store
 *.DS_Store
