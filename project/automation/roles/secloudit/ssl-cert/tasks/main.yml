@@ -30,4 +30,19 @@
       Domain: {{ domain }}
       Working Directory: /opt/ssl-certs
       Script Output:
-      {{ cert_result.stdout_lines | join('\n') }} 
+      {{ cert_result.stdout_lines | join('\n') }}
+
+## Harbor CA 인증서 관리 (Docker Registry용)
+- name: Docker 인증서 디렉토리 생성
+  file:
+    path: /etc/docker/certs.d/{{ domain }}
+    state: directory
+    mode: '0755'
+
+
+- name: Harbor CA 인증서 복사 (Harbor 설치 후)
+  copy:
+    src: "{{ harbor_working_dir }}/common/config/registry/root.crt"
+    dest: "/etc/docker/certs.d/{{ domain }}/ca.crt"
+    mode: '0644'
+  ignore_errors: yes

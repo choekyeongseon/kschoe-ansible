@@ -8,4 +8,4 @@
 - hosts: secloudit_vms
   roles:
     - prerequisite/packages
-    # - prerequisite/users 
+    # - prerequisite/users

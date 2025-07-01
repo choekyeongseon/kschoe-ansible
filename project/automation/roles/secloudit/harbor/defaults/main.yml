@@ -1,0 +1,34 @@
+---
+# Harbor 기본 설정
+harbor_config_path: /opt/harbor/config
+harbor_working_dir: /opt/harbor
+
+# Harbor 설정
+harbor:
+  hostname: "{{ ansible_default_ipv4.address | default('localhost') }}"
+  http_port: 80
+  https_port: 443
+  admin_password: Harbor12345
+  data_path: /data/harbor
+  config_path: /opt/harbor/harbor.yml
+  image_archive_path: /opt/harbor/harbor.v2.9.2.tar.gz
+  project_script: /opt/harbor/config/harbor-project-create.sh
+  push_script: /opt/harbor/config/tagging-push.sh
+
+# Harbor 이미지 설정
+harbor_image_version: v2.9.2
+harbor_image_file: harbor.v2.9.2.tar.gz
+
+# Harbor 프로젝트 설정
+harbor_projects:
+  - name: library
+    public: true
+  - name: secloudit
+    public: false
+
+# Harbor 사용자 설정
+harbor_users:
+  - username: admin
+    password: "{{ harbor.admin_password }}"
+    email: admin@harbor.local
+    realname: Harbor Administrator 

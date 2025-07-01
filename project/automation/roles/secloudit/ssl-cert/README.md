@@ -41,16 +41,6 @@ Harbor 및 기타 서비스에서 사용할 SSL 인증서를 생성하는 역할
 
 ## 변수
 
-### 전역 설정 (group_vars/all.yml)
-```yaml
-# SSL 인증서 설정
-ssl_cert:
-  domain: "seoul-city.com"
-  working_dir: "/opt/ssl-certs"
-```
-
-### Role 변수
-
 | 변수명 | 기본값 | 설명 |
 |--------|--------|------|
 | ssl_cert.domain | "harbor.local" | 인증서 도메인명 (필수) |
@@ -62,11 +52,6 @@ ssl_cert:
 | ssl_cert.cert_file | "/opt/certs/harbor.crt" | 기존 인증서 파일 경로 (하위 호환성) |
 | ssl_cert.validity_days | 365 | 인증서 유효기간 (일) |
 | ssl_cert.key_size | 2048 | RSA 키 크기 |
-
-### 변수 우선순위
-1. **플레이북 변수** (가장 높음)
-2. **group_vars/all.yml** (전역 설정)
-3. **role defaults** (기본값)
 
 ## 생성되는 파일
 - `/opt/ssl-certs/harbor/`: Harbor 인증서 파일들

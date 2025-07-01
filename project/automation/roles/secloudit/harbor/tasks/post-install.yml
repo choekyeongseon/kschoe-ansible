@@ -1,0 +1,85 @@
+---
+## Harbor 컨테이너 실행 후 작업들
+
+- name: Harbor 프로젝트 생성 스크립트 실행
+  shell: "{{ harbor_config_path }}/harbor-project-create.sh"
+  register: harbor_project_result
+  changed_when: harbor_project_result.rc == 0
+  failed_when: harbor_project_result.rc != 0
+
+- name: Harbor 프로젝트 생성 결과 출력
+  debug:
+    msg: "{{ harbor_project_result.stdout_lines }}"
+  when: harbor_project_result.stdout_lines is defined
+
+- name: Harbor 이미지 로드 스크립트 실행
+  shell: "{{ harbor_config_path }}/load-shell.sh"
+  register: harbor_load_result
+  changed_when: harbor_load_result.rc == 0
+  failed_when: harbor_load_result.rc != 0
+
+- name: Harbor 이미지 로드 결과 출력
+  debug:
+    msg: "=== Harbor Image Load Script Execution Result ==="
+
+- name: Harbor 이미지 로드 stdout 출력
+  debug:
+    msg: "{{ harbor_load_result.stdout_lines }}"
+  when: harbor_load_result.stdout_lines is defined
+
+- name: Harbor 이미지 로드 stderr 출력
+  debug:
+    msg: "{{ harbor_load_result.stderr_lines }}"
+  when: harbor_load_result.stderr_lines is defined
+
+- name: Harbor 이미지 로드 종료 코드 출력
+  debug:
+    msg: "Exit code: {{ harbor_load_result.rc }}"
+
+- name: Harbor 이미지 push 스크립트 실행
+  shell: "{{ harbor_config_path }}/tagging-push.sh"
+  register: harbor_push_result
+  changed_when: harbor_push_result.rc == 0
+  failed_when: harbor_push_result.rc != 0
+
+- name: Harbor 이미지 push 실행 결과 출력
+  debug:
+    msg: "=== Harbor Image Push Script Execution Result ==="
+
+- name: Harbor 이미지 push stdout 출력
+  debug:
+    msg: "{{ harbor_push_result.stdout_lines }}"
+  when: harbor_push_result.stdout_lines is defined
+
+- name: Harbor 이미지 push stderr 출력
+  debug:
+    msg: "{{ harbor_push_result.stderr_lines }}"
+  when: harbor_push_result.stderr_lines is defined
+
+- name: Harbor 이미지 push 종료 코드 출력
+  debug:
+    msg: "Exit code: {{ harbor_push_result.rc }}"
+
+- name: 최종 Harbor 상태 확인
+  uri:
+    url: "https://{{ domain }}/api/v2.0/projects"
+    method: GET
+    validate_certs: false
+    status_code: [200, 401]
+  register: final_harbor_status
+
+- name: 최종 Harbor 상태 출력
+  debug:
+    msg: "Harbor post-installation tasks completed successfully! API Status: {{ final_harbor_status.status }}"
+
+
+
+
+#DR 회의 
+# 외부망 DR, POC 과정, 백업후 보니, openstack에서 ip 할당 하는 방식이 vm과 상이함. 
+# openstack은 ip 정보 없이 vm이 올라옴.
+# 쿠버네티스 클러스터는 ip 변경되면 DR내에 vm 재구동시, 정상동작 미지수. # 확인 필요.
+#  
+
+
+

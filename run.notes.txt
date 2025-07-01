@@ -1,7 +1,30 @@
-control_node_ip = "3.35.136.160"
-ssh_control_node = "ssh -i ~/.ssh/id_rsa ec2-user@13.125.229.192"
-ssh_target_node = "ssh -i ~/.ssh/id_rsa ec2-user@3.35.216.140"
-target_node_ip = "3.35.216.140"
+# 1. ansible 설치
+- tar.gz 파일 이동
+- rpm 설치
+- galaxy 설치
+- ansible.cfg 이동
+
+# 2. 프로젝트 실행
+1. ansible-playbook playbooks/ssh-key-distribution.yml --ask-pass
+2. ansible-galaxy collection install ansible-posix-2.0.0.tar.gz 
+3. ansible-playbook playbooks/ssl-cert-test.yml # <-- domain 변수를 playbooks에 선언함..
 
 
-## aws ec2 create-default-vpc 
+
+## VM List -
+Util VM #type: t3.medium #tag: util-vm # Ansible control-node
+Auth VM #t3.medium #tag: auth-vm #Ansible target-node
+Console VM #t3.large #tag: console-vm #Ansible target-node
+Logging VM #t3.medium #tag: logging-vm #Ansible target-node
+---
+master1 VM #t3.medium #tag: master1-node #Ansible target-node
+master2 VM #t3.medium #tag: master2-node #Ansible target-node
+master3 VM #t3.medium #tag: master3-node #Ansible target-node
+worker1 VM #t3.large #tag: worker1-node #Ansible target-node
+worker2 VM #t3.large #tag: worker2-node #Ansible target-node
+worker3 VM #t3.large #tag: worker3-node #Ansible target-node
+---
+
+#DevOpsit-Core VM #tag: target-node #Ansible target-node
+#DevOpsit-Console VM #tag: target-node #Ansible target-node
+---

@@ -17,3 +17,28 @@ tmpreg: "secloud-oss" # tagging-push.sh.j2 파일에서 사용
 harbor_data_dir: "/data/harbor" # harbor.yml.j2 파일에서 사용
 harbor_config_path: "/etc/harbor/configs" # harbor.yml.j2 파일에서 사용
 harbor_working_dir: "/etc/harbor" # harbor.yml.j2 파일에서 사용
+
+# Harbor 프로젝트 설정
+harbor_public_projects:
+  - argocd
+  - ingress-nginx
+  - prometheus
+  - tekton-pipeline
+  - tekton-triggers
+  - secloudit-registry-agent
+  - calico
+  - kubernetes-install
+  - istio-system
+  - cluster-logging
+  - nfs-server
+  - secloudit-util
+  - helm-packages
+  - metrics-server
+  - kafka
+  - dns
+  - mysql
+
+harbor_private_projects:
+  - secloudit
+  - secloudit-java
+  - secloudit-2.2-dev

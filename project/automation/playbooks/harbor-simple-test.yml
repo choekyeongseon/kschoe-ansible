@@ -1,0 +1,53 @@
+---
+- name: Harbor Role Simple Test (File Deployment Only)
+  hosts: secloudit_vms
+  become: yes
+  vars:
+    harbor_config_path: /tmp/harbor-test/config
+    harbor_working_dir: /tmp/harbor-test
+    harbor:
+      hostname: "{{ ansible_default_ipv4.address }}"
+      http_port: 80
+      https_port: 443
+      admin_password: Harbor12345
+
+  tasks:
+    - name: Create test directories
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+      loop:
+        - "{{ harbor_config_path }}"
+        - "{{ harbor_working_dir }}"
+
+    - name: Test Harbor role (dry-run)
+      include_role:
+        name: secloudit/harbor
+      vars:
+        harbor_config_path: "{{ harbor_config_path }}"
+        harbor_working_dir: "{{ harbor_working_dir }}"
+
+    - name: List deployed files
+      find:
+        paths: "{{ harbor_working_dir }}"
+        recurse: yes
+      register: deployed_files
+
+    - name: Display deployed files
+      debug:
+        var: deployed_files.files
+
+    - name: Check if Harbor files are properly deployed
+      stat:
+        path: "{{ item }}"
+      register: file_check
+      loop:
+        - "{{ harbor_working_dir }}/harbor.yml"
+        - "{{ harbor_working_dir }}/docker-compose.yml"
+        - "{{ harbor_config_path }}/load-shell.sh"
+        - "{{ harbor_config_path }}/harbor-project-create.sh"
+
+    - name: Display file check results
+      debug:
+        var: file_check.results 

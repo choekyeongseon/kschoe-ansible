@@ -15,7 +15,7 @@ crash.*.log
 
 # Ignore CLI configuration files
 .terraformrc
-terraform.rc
+terraform.rc 
 
 # System files
 .DS_Store

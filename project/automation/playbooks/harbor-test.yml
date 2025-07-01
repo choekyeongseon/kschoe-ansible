@@ -1,0 +1,73 @@
+---
+- name: Harbor Role Test Playbook
+  hosts: secloudit_vms
+  become: yes
+  vars:
+    # Harbor 기본 설정
+    harbor_config_path: /opt/harbor/config
+    harbor_working_dir: /opt/harbor
+    harbor:
+      hostname: "{{ ansible_default_ipv4.address }}"
+      http_port: 80
+      https_port: 443
+      admin_password: Harbor12345
+      data_path: /data/harbor
+      config_path: /opt/harbor/harbor.yml
+      image_archive_path: /opt/harbor/harbor.v2.9.2.tar.gz
+      project_script: /opt/harbor/config/harbor-project-create.sh
+      push_script: /opt/harbor/config/tagging-push.sh
+
+  pre_tasks:
+    - name: Check if Docker is installed
+      command: docker --version
+      register: docker_check
+      ignore_errors: yes
+      changed_when: false
+
+    - name: Install Docker if not present
+      include_role:
+        name: prerequisite/packages
+      when: docker_check.rc != 0
+
+    - name: Check if SSL certificates exist
+      stat:
+        path: /etc/ssl/certs/harbor.crt
+      register: ssl_cert_check
+
+    - name: Display SSL certificate status
+      debug:
+        msg: "SSL certificate exists: {{ ssl_cert_check.stat.exists }}"
+
+  roles:
+    - role: secloudit/harbor
+
+  post_tasks:
+    - name: Add Harbor domain to /etc/hosts
+      lineinfile:
+        path: /etc/hosts
+        line: "{{ ansible_default_ipv4.address }} {{ domain }}"
+        state: present
+      when: domain is defined
+
+    - name: Display /etc/hosts entry
+      debug:
+        msg: "Added {{ ansible_default_ipv4.address }} {{ domain }} to /etc/hosts"
+
+    - name: Wait for Harbor containers to start
+      uri:
+        url: "https://{{ domain }}/api/v2.0/health"
+        method: GET
+        validate_certs: false
+        status_code: [200]
+      register: harbor_check
+      retries: 15
+      delay: 30
+      until: harbor_check.status == 200
+
+    - name: Display Harbor health status
+      debug:
+        msg: "Harbor health check successful (Status: {{ harbor_check.status }})"
+
+    - name: Execute Harbor post-installation tasks
+      include_tasks: "{{ role_path }}/tasks/post-install.yml"
+      when: harbor_check.status in [200, 302, 401] 
